@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  joiningDate   DateTime?
+  userRole      String?
+  project       String?
+
+  PersonalData PersonalData[]
+
+  LegaDocuments  LegalDocuments[]
+  Education      Education[]
+  workExperience workExperience[]
+  skills         Skills[]
+
+  managedUsers User[]    @relation("Manager")
+  manager      User?     @relation("Manager", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  managerId    String?   @db.ObjectId
+  sessions     Session[]
+}
+
+model PersonalData {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullName    String
+  dateOfBirth DateTime
+  Gender      Gender
+  citizenship String
+  User        User     @relation(fields: [userId], references: [id])
+  userId      String   @db.ObjectId
+}
+
+model LegalDocuments {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  DocumentType   String
+  expiryDate     DateTime?
+  DocumentNumber String
+  User           User?     @relation(fields: [userId], references: [id])
+  userId         String?   @db.ObjectId
+}
+
+model Education {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  institutionName String
+  collegeName     String
+  Department      String
+  Stream          String
+  Location        String
+  User            User?   @relation(fields: [userId], references: [id])
+  userId          String? @db.ObjectId
+}
+
+model workExperience {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyName        String
+  customerName       String
+  ProjectName        String
+  ProjectDescription String
+  Team               String
+  Role               String
+  StartPeriod        DateTime
+  EndPeriod          DateTime
+  User               User?    @relation(fields: [userId], references: [id])
+  userId             String?  @db.ObjectId
+}
+
+model Skills {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  skill  String
+  rating Int
+  companyName String?
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+}
